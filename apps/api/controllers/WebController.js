@@ -1,20 +1,17 @@
-const AWS = require("aws-sdk");
-const crypto = require("crypto");
-const bcrypt = require("bcrypt");
+const AWS = require('aws-sdk');
+const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+ 
 
 const { v4: uuidv4 } = require("uuid");
-const axios = require("axios");
+const axios = require('axios');
 const { validateFHIR } = require("../Fhirvalidator/FhirValidator");
-const jwt = require("jsonwebtoken");
-const { WebUser, ProfileData } = require("../models/WebUser");
-// import {
-//   ConfirmForgotPasswordCommand,
-//   CognitoIdentityProviderClient,
-// } from '@aws-sdk/client-cognito-identity-provider';
-const {
+const jwt = require('jsonwebtoken');
+const { WebUser, ProfileData } = require('../models/WebUser');
+import {
   ConfirmForgotPasswordCommand,
   CognitoIdentityProviderClient,
-} = require("@aws-sdk/client-cognito-identity-provider");
+} from '@aws-sdk/client-cognito-identity-provider';
 const cognitoo = new CognitoIdentityProviderClient({
   region: process.env.AWS_REGION,
 });
@@ -35,10 +32,10 @@ const WebController = {
       if (!email || !password) {
         return res
           .status(400)
-          .json({ message: "Email and password are required." });
+          .json({ message: 'Email and password are required.' });
       }
 
-      console.log("Checking if user exists in Cognito...");
+      console.log('Checking if user exists in Cognito...');
 
       // Check if user exists in Cognito
       try {
@@ -48,23 +45,23 @@ const WebController = {
         };
         const userData = await cognito.adminGetUser(params).promise();
 
-        console.log("User found in Cognito:", userData);
+        console.log('User found in Cognito:', userData);
 
         // Check if email is verified
         const emailVerified =
-          userData.UserAttributes.find((attr) => attr.Name === "email_verified")
-            ?.Value === "true";
+          userData.UserAttributes.find((attr) => attr.Name === 'email_verified')
+            ?.Value === 'true';
 
-        console.log("Email verified status:", emailVerified);
+        console.log('Email verified status:', emailVerified);
 
         if (emailVerified) {
           return res
             .status(409)
-            .json({ message: "User already exists. Please login." });
+            .json({ message: 'User already exists. Please login.' });
         }
 
         // If user exists but is NOT verified, resend OTP
-        console.log("User exists but is not verified. Resending OTP...");
+        console.log('User exists but is not verified. Resending OTP...');
         const resendParams = {
           ClientId: process.env.COGNITO_CLIENT_ID_WEB,
           Username: email,
@@ -76,24 +73,24 @@ const WebController = {
 
         await cognito.resendConfirmationCode(resendParams).promise();
 
-        return res.status(200).json({ message: "New OTP sent to your email." });
+        return res.status(200).json({ message: 'New OTP sent to your email.' });
       } catch (err) {
-        if (err.code !== "UserNotFoundException") {
-          console.error("Error checking Cognito user:", err);
+        if (err.code !== 'UserNotFoundException') {
+          console.error('Error checking Cognito user:', err);
           return res
             .status(500)
-            .json({ message: "Error checking user status." });
+            .json({ message: 'Error checking user status.' });
         }
       }
 
       // If user is not found, proceed with registration
-      console.log("User not found. Proceeding with registration...");
+      console.log('User not found. Proceeding with registration...');
 
       const signUpParams = {
         ClientId: process.env.COGNITO_CLIENT_ID_WEB,
         Username: email,
         Password: password,
-        UserAttributes: [{ Name: "email", Value: email }],
+        UserAttributes: [{ Name: 'email', Value: email }],
       };
 
       if (process.env.COGNITO_CLIENT_SECRET) {
@@ -103,18 +100,18 @@ const WebController = {
       let data;
       try {
         data = await cognito.signUp(signUpParams).promise();
-        console.log("User successfully registered in Cognito:", data);
+        console.log('User successfully registered in Cognito:', data);
       } catch (err) {
-        if (err.code === "UsernameExistsException") {
+        if (err.code === 'UsernameExistsException') {
           return res.status(409).json({
             message:
-              "User already exists in Cognito. Please verify your email.",
+              'User already exists in Cognito. Please verify your email.',
           });
         }
-        console.error("Cognito Signup Error:", err);
+        console.error('Cognito Signup Error:', err);
         return res
           .status(500)
-          .json({ message: "Error registering user. Please try again later." });
+          .json({ message: 'Error registering user. Please try again later.' });
       }
 
       // Save only CognitoId and BusinessType in MongoDB
@@ -127,13 +124,13 @@ const WebController = {
 
       return res.status(200).json({
         message:
-          "User registered successfully! Please verify your email with OTP.",
+          'User registered successfully! Please verify your email with OTP.',
       });
     } catch (error) {
-      console.error("Unexpected Error:", error);
+      console.error('Unexpected Error:', error);
       return res
         .status(500)
-        .json({ message: "Internal Server Error. Please try again later." });
+        .json({ message: 'Internal Server Error. Please try again later.' });
     }
   },
 
@@ -142,10 +139,10 @@ const WebController = {
       const { email, otp } = req.body;
 
       if (!email || !otp) {
-        return res.status(400).json({ message: "Email and OTP are required." });
+        return res.status(400).json({ message: 'Email and OTP are required.' });
       }
 
-      console.log("Verifying OTP for email:", email);
+      console.log('Verifying OTP for email:', email);
 
       const secretHash = getSecretHash(email);
 
@@ -160,13 +157,13 @@ const WebController = {
 
       try {
         const userData = await cognito.adminGetUser(params).promise();
-        console.log("Cognito User Data:", JSON.stringify(userData, null, 2));
+        console.log('Cognito User Data:', JSON.stringify(userData, null, 2));
 
         // Check if user is already verified
         const emailVerified =
           userData?.UserAttributes?.find(
-            (attr) => attr.Name === "email_verified"
-          )?.Value === "true";
+            (attr) => attr.Name === 'email_verified'
+          )?.Value === 'true';
 
         if (emailVerified) {
           isUserVerified = true;
@@ -174,20 +171,20 @@ const WebController = {
 
         // Extract Cognito ID (sub)
         cognitoId = userData?.UserAttributes?.find(
-          (attr) => attr.Name === "sub"
+          (attr) => attr.Name === 'sub'
         )?.Value;
 
         if (!cognitoId) {
-          console.error("Cognito ID (sub) not found:", userData.UserAttributes);
-          return res.status(500).json({ message: "Cognito ID not found." });
+          console.error('Cognito ID (sub) not found:', userData.UserAttributes);
+          return res.status(500).json({ message: 'Cognito ID not found.' });
         }
 
-        console.log("Cognito ID:", cognitoId);
+        console.log('Cognito ID:', cognitoId);
       } catch (err) {
-        console.error("Error retrieving Cognito user:", err);
+        console.error('Error retrieving Cognito user:', err);
         return res
           .status(500)
-          .json({ message: "Error retrieving user details." });
+          .json({ message: 'Error retrieving user details.' });
       }
 
       // If the user is not verified yet, proceed with OTP confirmation
@@ -202,11 +199,11 @@ const WebController = {
 
         try {
           await cognito.confirmSignUp(confirmParams).promise();
-          console.log("User confirmed with OTP");
+          console.log('User confirmed with OTP');
         } catch (err) {
-          console.error("Cognito Verification Error:", err);
+          console.error('Cognito Verification Error:', err);
           return res.status(400).json({
-            message: "Invalid OTP or user already verified.",
+            message: 'Invalid OTP or user already verified.',
           });
         }
       }
@@ -217,7 +214,7 @@ const WebController = {
       if (!user) {
         return res
           .status(404)
-          .json({ message: "User not found in the system" });
+          .json({ message: 'User not found in the system' });
       }
 
       // Generate JWT token
@@ -232,15 +229,15 @@ const WebController = {
       );
 
       return res.status(200).json({
-        message: "User verified successfully!",
+        message: 'User verified successfully!',
         token,
         cognitoId,
       });
     } catch (error) {
-      console.error("Unexpected Error:", error);
+      console.error('Unexpected Error:', error);
       return res
         .status(500)
-        .json({ message: "Internal Server Error. Please try again later." });
+        .json({ message: 'Internal Server Error. Please try again later.' });
     }
   },
 
@@ -251,13 +248,13 @@ const WebController = {
       if (!email || !password) {
         return res
           .status(400)
-          .json({ message: "Email and password are required" });
+          .json({ message: 'Email and password are required' });
       }
 
       const secretHash = getSecretHash(email);
 
       const params = {
-        AuthFlow: "USER_PASSWORD_AUTH",
+        AuthFlow: 'USER_PASSWORD_AUTH',
         ClientId: process.env.COGNITO_CLIENT_ID_WEB,
         AuthParameters: {
           SECRET_HASH: secretHash,
@@ -270,7 +267,7 @@ const WebController = {
       const data = await cognito.initiateAuth(params).promise();
 
       if (!data.AuthenticationResult) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: 'Invalid credentials' });
       }
 
       // Get user details from Cognito to extract cognitoId (sub)
@@ -282,13 +279,13 @@ const WebController = {
         .promise();
 
       const cognitoId = userDetails.UserAttributes.find(
-        (attr) => attr.Name === "sub"
+        (attr) => attr.Name === 'sub'
       )?.Value;
 
       if (!cognitoId) {
         return res
           .status(500)
-          .json({ message: "Failed to retrieve Cognito ID" });
+          .json({ message: 'Failed to retrieve Cognito ID' });
       }
 
       // Find user in MongoDB using cognitoId
@@ -297,7 +294,7 @@ const WebController = {
       if (!user) {
         return res
           .status(404)
-          .json({ message: "User not found in the system" });
+          .json({ message: 'User not found in the system' });
       }
 
       // Generate JWT token
@@ -313,37 +310,37 @@ const WebController = {
 
       return res.json({
         token,
-        message: "Logged in successfully",
+        message: 'Logged in successfully',
       });
     } catch (error) {
-      console.error("Error during sign-in:", error);
+      console.error('Error during sign-in:', error);
 
-      if (error.code === "NotAuthorizedException") {
-        return res.status(401).json({ message: "Invalid email or password" });
+      if (error.code === 'NotAuthorizedException') {
+        return res.status(401).json({ message: 'Invalid email or password' });
       }
 
-      return res.status(500).json({ message: "Internal server error", error });
+      return res.status(500).json({ message: 'Internal server error', error });
     }
   },
 
   signOut: async (req, res) => {
     try {
-      res.clearCookie("accessToken", {
+      res.clearCookie('accessToken', {
         httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
       });
 
-      res.clearCookie("refreshToken", {
+      res.clearCookie('refreshToken', {
         httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
       });
 
-      return res.status(200).json({ message: "Logout successful" });
+      return res.status(200).json({ message: 'Logout successful' });
     } catch (error) {
-      console.error("Error during sign-out:", error);
-      return res.status(500).json({ message: "Internal server error" });
+      console.error('Error during sign-out:', error);
+      return res.status(500).json({ message: 'Internal server error' });
     }
   },
 
@@ -361,13 +358,13 @@ const WebController = {
       try {
         await cognito.adminGetUser(params).promise(); // Ensure user exists
       } catch (err) {
-        if (err.code === "UserNotFoundException") {
-          return res.status(404).json({ message: "User not found in Cognito" });
+        if (err.code === 'UserNotFoundException') {
+          return res.status(404).json({ message: 'User not found in Cognito' });
         }
-        console.error("Error checking user in Cognito:", err);
+        console.error('Error checking user in Cognito:', err);
         return res
           .status(500)
-          .json({ message: "Error checking user status in Cognito." });
+          .json({ message: 'Error checking user status in Cognito.' });
       }
 
       // Send a password reset code to the user using Cognito's forgotPassword API
@@ -385,12 +382,12 @@ const WebController = {
       // Success
       return res.status(200).json({
         message:
-          "Password reset code sent to your email. Please check your inbox.",
+          'Password reset code sent to your email. Please check your inbox.',
       });
     } catch (error) {
-      console.error("Error during forgotPassword:", error);
+      console.error('Error during forgotPassword:', error);
       return res.status(500).json({
-        message: "Error during password reset process",
+        message: 'Error during password reset process',
         error: error.message,
       });
     }
@@ -403,7 +400,7 @@ const WebController = {
       if (!email || !otp || !newPassword) {
         return res
           .status(400)
-          .json({ message: "Email, OTP, and new password are required." });
+          .json({ message: 'Email, OTP, and new password are required.' });
       }
 
       const params = {
@@ -418,12 +415,12 @@ const WebController = {
 
       res
         .status(200)
-        .json({ message: "Password reset successfully. You can now log in." });
+        .json({ message: 'Password reset successfully. You can now log in.' });
     } catch (error) {
-      console.error("Error resetting password:", error);
+      console.error('Error resetting password:', error);
       res
         .status(500)
-        .json({ message: "Error resetting password.", error: error.message });
+        .json({ message: 'Error resetting password.', error: error.message });
     }
   },
   updatePassword: async (req, res) => {
@@ -431,26 +428,26 @@ const WebController = {
       const { email, password } = req.body;
       const getdata = await WebUser.findOne({ email });
       if (!getdata) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: 'User not found' });
       } else {
         const hashedPassword = await bcrypt.hash(password, 10);
         await WebUser.updateOne(
           { email },
           { $set: { password: hashedPassword } }
         );
-        res.status(200).json({ message: "Password updated successfully" });
+        res.status(200).json({ message: 'Password updated successfully' });
       }
     } catch (error) {
-      console.error("Error updating password:", error);
+      console.error('Error updating password:', error);
       res.status(500).json({
-        message: "Error updating password",
+        message: 'Error updating password',
       });
     }
   },
 
   setupProfile: async (req, res) => {
     try {
-      console.log("Received Files:", req.files);
+      console.log('Received Files:', req.files);
       const uploadToS3 = (file, folderName) => {
         return new Promise((resolve, reject) => {
           const params = {
@@ -462,7 +459,7 @@ const WebController = {
 
           s3.upload(params, (err, data) => {
             if (err) {
-              console.error("Error uploading to S3:", err);
+              console.error('Error uploading to S3:', err);
               reject(err);
             } else {
               resolve(data.Key);
@@ -470,31 +467,31 @@ const WebController = {
           });
         });
       };
-      console.log("bodyy data", req.body);
-
+  console.log("bodyy data", req.body);
+     
       const fhirData = JSON.parse(req.body.fhirData);
-      console.log("validations", validateFHIR(fhirData));
+console.log("validations",validateFHIR(fhirData));
 
-      const organization = fhirData.organization;
+const organization = fhirData.organization;
       const healthcareServices = fhirData.healthcareServices;
-
+  
       const userId = organization.identifier.find(
         (id) => id.system === "http://example.com/hospital-id"
       )?.value;
-
+  
       const businessName = organization.name;
       const registrationNumber = organization.identifier.find(
         (id) => id.system === "http://example.com/registration"
       )?.value;
-
+  
       const phoneNumber = organization.telecom.find(
         (telecom) => telecom.system === "phone"
       )?.value;
-
+  
       const website = organization.telecom.find(
         (telecom) => telecom.system === "url"
       )?.value;
-
+  
       const address = organization.address?.[0] || {};
       const latitude = address.extension?.[0]?.extension?.find(
         (ext) => ext.url === "latitude"
@@ -502,21 +499,21 @@ const WebController = {
       const longitude = address.extension?.[0]?.extension?.find(
         (ext) => ext.url === "longitude"
       )?.valueDecimal;
-
+  
       const activeModes = organization.active ? "true" : "false";
-
+  
       // Upload logo if provided
       const logo = req.files?.logo
         ? await uploadToS3(req.files.logo, "logo")
         : undefined;
-
+  
       // Upload attachments (documents)
       let prescriptionUpload = [];
       if (req.files && req.files.attachments) {
         const documentFiles = Array.isArray(req.files.attachments)
           ? req.files.attachments
           : [req.files.attachments];
-
+  
         for (let file of documentFiles) {
           const documentKey = await uploadToS3(file, "prescription_upload");
           console.log("Uploaded Document Key:", documentKey);
@@ -527,13 +524,13 @@ const WebController = {
           });
         }
       }
-
+  
       // Prepare Healthcare Services in expected format
       const selectedServices = healthcareServices.map((service) => ({
         code: service.type?.[0]?.coding?.[0]?.code || "",
         display: service.type?.[0]?.coding?.[0]?.display || "",
       }));
-
+  
       // Update Profile in Database
       const updatedProfile = await ProfileData.findOneAndUpdate(
         { userId },
@@ -563,14 +560,14 @@ const WebController = {
         },
         { new: true, upsert: true }
       );
-
+  
       if (updatedProfile) {
         return res.status(200).json({
           message: "Profile updated successfully",
           profile: updatedProfile,
         });
       }
-
+  
       res.status(400).json({ message: "Profile update failed" });
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -580,7 +577,7 @@ const WebController = {
       });
     }
   },
-
+   
   getProfile: async (req, res) => {
     try {
       const userId = req.params.id;
@@ -595,7 +592,7 @@ const WebController = {
         };
 
         const logoUrl = getS3Url(profile.logo);
-        console.log("profile.prescription_upload", profile.prescription_upload);
+        console.log('profile.prescription_upload', profile.prescription_upload);
         const prescriptionUploadUrl = profile.prescription_upload.map(
           (file) => ({
             name: getS3Url(file.name),
@@ -611,29 +608,29 @@ const WebController = {
           prescriptionUploadUrl,
         });
       } else {
-        res.status(404).json({ message: "Profile not found" });
+        res.status(404).json({ message: 'Profile not found' });
       }
     } catch (error) {
-      console.error("Error getting profile:", error);
-      res.status(500).json({ message: "Error retrieving profile" });
+      console.error('Error getting profile:', error);
+      res.status(500).json({ message: 'Error retrieving profile' });
     }
   },
   deleteDocumentsToUpdate: async (req, res) => {
     const { userId, docId } = req.params;
-    console.log("User ID:", userId);
-    console.log("Document ID:", docId);
+    console.log('User ID:', userId);
+    console.log('Document ID:', docId);
 
     try {
       const user = await ProfileData.findOne({ userId }).lean();
 
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: 'User not found' });
       }
 
       if (!user.prescription_upload || user.prescription_upload.length === 0) {
         return res
           .status(404)
-          .json({ message: "No documents found for this user" });
+          .json({ message: 'No documents found for this user' });
       }
 
       const documentToDelete = user.prescription_upload.find(
@@ -641,11 +638,11 @@ const WebController = {
       );
 
       if (!documentToDelete) {
-        return res.status(404).json({ message: "Document not found" });
+        return res.status(404).json({ message: 'Document not found' });
       }
 
       const s3Key = documentToDelete.name;
-      console.log("S3 Key to delete:", s3Key);
+      console.log('S3 Key to delete:', s3Key);
 
       const deleteParams = {
         Bucket: process.env.AWS_S3_BUCKET_NAME,
@@ -654,20 +651,20 @@ const WebController = {
 
       try {
         const headObject = await s3.headObject(deleteParams).promise();
-        console.log("S3 File Found:", headObject);
+        console.log('S3 File Found:', headObject);
       } catch (headErr) {
-        console.error("S3 File Not Found:", headErr);
-        return res.status(404).json({ message: "File not found in S3" });
+        console.error('S3 File Not Found:', headErr);
+        return res.status(404).json({ message: 'File not found in S3' });
       }
 
       try {
         const deleteResponse = await s3.deleteObject(deleteParams).promise();
-        console.log("S3 Delete Response:", deleteResponse);
+        console.log('S3 Delete Response:', deleteResponse);
       } catch (deleteErr) {
-        console.error("S3 Deletion Error:", deleteErr);
+        console.error('S3 Deletion Error:', deleteErr);
         return res
           .status(500)
-          .json({ message: "Failed to delete file from S3", error: deleteErr });
+          .json({ message: 'Failed to delete file from S3', error: deleteErr });
       }
 
       const updatedUser = await ProfileData.findOneAndUpdate(
@@ -679,202 +676,187 @@ const WebController = {
       if (!updatedUser) {
         return res
           .status(404)
-          .json({ message: "Document not found in the database" });
+          .json({ message: 'Document not found in the database' });
       }
 
-      console.log("Document deleted successfully from both database and S3");
+      console.log('Document deleted successfully from both database and S3');
       res.status(200).json({
-        message: "Document deleted successfully from both database and S3",
+        message: 'Document deleted successfully from both database and S3',
         updatedUser,
       });
     } catch (err) {
-      console.error("Unexpected Error:", err);
+      console.error('Unexpected Error:', err);
       res.status(500).json({
-        message: "An error occurred while deleting the document",
+        message: 'An error occurred while deleting the document',
         error: err,
       });
     }
   },
+ 
 
-  getHospitalProfileFHIR: async (req, res) => {
-    try {
-      const { userId } = req.params;
-
-      // Fetch profile from MongoDB using userId
-      const profile = await ProfileData.findOne({ userId });
-
-      if (!profile) {
-        return res.status(404).json({
-          resourceType: "OperationOutcome",
-          issue: [
-            {
-              severity: "error",
-              code: "not-found",
-              details: { text: "Hospital profile not found" },
-            },
-          ],
-        });
-      }
-
-      // Generate S3 URL Helper
-      const getS3Url = (fileKey) =>
-        fileKey
-          ? `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileKey}`
-          : null;
-
-      const logoUrl = getS3Url(profile.logo);
-
-      // Build Organization Resource
-      const organizationFHIR = {
-        resourceType: "Organization",
-        id: profile.userId.toLowerCase(), // ✅ Use profile.userId
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>${profile.businessName} - ${profile.address.city}</p></div>`,
-        },
-        name: profile.businessName,
-        telecom: [{ system: "phone", value: profile.phoneNumber }],
-        address: [
-          {
-            use: "work",
-            line: [profile.address.addressLine1],
-            city: profile.address.city,
-            state: profile.address.state,
-            postalCode: profile.address.zipCode,
-            country: "US",
-          },
-        ],
-        active: profile.activeModes === "true",
-        ...(logoUrl && {
-          extension: [
-            {
-              url: "https://myorganization.com/fhir/StructureDefinition/logo", // ✅ Valid extension URL
-              valueUrl: logoUrl,
-            },
-          ],
-        }),
-      };
-
-      // Build DocumentReference Resources
-      const documentFHIR = profile.prescription_upload.map((file, index) => ({
-        resourceType: "DocumentReference",
-        id: uuidv4().toLowerCase(), // ✅ Valid UUIDs for documents
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>Document ${index + 1}: ${file.name}</p></div>`,
-        },
-        status: "current",
-        type: {
-          coding: [
-            {
-              system: "http://loinc.org",
-              code: "34133-9",
-              display: "Summary of episode note",
-            },
-          ],
-        },
-        content: [
-          {
-            attachment: {
-              contentType: file.type,
-              url: getS3Url(file.name),
-            },
-          },
-        ],
-      }));
-
-      // Build FHIR Bundle with valid fullUrls
-      const fhirBundle = {
-        resourceType: "Bundle",
-        type: "collection",
-        entry: [
-          {
-            fullUrl: `urn:uuid:${profile.userId.toLowerCase()}`, // ✅ Valid fullUrl for organization
-            resource: organizationFHIR,
-          },
-          ...documentFHIR.map((doc) => ({
-            fullUrl: `urn:uuid:${doc.id}`, // ✅ Valid fullUrl for documents
-            resource: doc,
-          })),
-        ],
-      };
-
-      // ✅ Return Valid FHIR Bundle
-      res.status(200).json(fhirBundle);
-      console.log("FHIR Validation Result:", validateFHIR(fhirBundle)); // Optional for validation
-    } catch (error) {
-      console.error("Error fetching hospital profile:", error);
-      res.status(500).json({
-        resourceType: "OperationOutcome",
-        issue: [
-          {
-            severity: "error",
-            code: "exception",
-            details: { text: "Internal server error while fetching profile." },
-          },
-        ],
-      });
-    }
-  },
-
+ getHospitalProfileFHIR: async (req, res) => {
+   try {
+     const { userId } = req.params;
+ 
+     // Fetch profile from MongoDB using userId
+     const profile = await ProfileData.findOne({ userId });
+ 
+     if (!profile) {
+       return res.status(404).json({
+         resourceType: "OperationOutcome",
+         issue: [{ severity: "error", code: "not-found", details: { text: "Hospital profile not found" } }],
+       });
+     }
+ 
+     // Generate S3 URL Helper
+     const getS3Url = (fileKey) =>
+       fileKey ? `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileKey}` : null;
+ 
+     const logoUrl = getS3Url(profile.logo);
+ 
+     // Build Organization Resource
+     const organizationFHIR = {
+       resourceType: "Organization",
+       id: profile.userId.toLowerCase(), // ✅ Use profile.userId
+       text: {
+         status: "generated",
+         div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>${profile.businessName} - ${profile.address.city}</p></div>`,
+       },
+       name: profile.businessName,
+       telecom: [{ system: "phone", value: profile.phoneNumber }],
+       address: [
+         {
+           use: "work",
+           line: [profile.address.addressLine1],
+           city: profile.address.city,
+           state: profile.address.state,
+           postalCode: profile.address.zipCode,
+           country: "US",
+         },
+       ],
+       active: profile.activeModes === "true",
+       ...(logoUrl && {
+         extension: [
+           {
+             url: "https://myorganization.com/fhir/StructureDefinition/logo", // ✅ Valid extension URL
+             valueUrl: logoUrl,
+           },
+         ],
+       }),
+     };
+ 
+     // Build DocumentReference Resources
+     const documentFHIR = profile.prescription_upload.map((file, index) => ({
+       resourceType: "DocumentReference",
+       id: uuidv4().toLowerCase(), // ✅ Valid UUIDs for documents
+       text: {
+         status: "generated",
+         div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>Document ${index + 1}: ${file.name}</p></div>`,
+       },
+       status: "current",
+       type: { coding: [{ system: "http://loinc.org", code: "34133-9", display: "Summary of episode note" }] },
+       content: [
+         {
+           attachment: {
+             contentType: file.type,
+             url: getS3Url(file.name),
+           },
+         },
+       ],
+     }));
+ 
+     // Build FHIR Bundle with valid fullUrls
+     const fhirBundle = {
+       resourceType: "Bundle",
+       type: "collection",
+       entry: [
+         {
+           fullUrl: `urn:uuid:${profile.userId.toLowerCase()}`, // ✅ Valid fullUrl for organization
+           resource: organizationFHIR,
+         },
+         ...documentFHIR.map((doc) => ({
+           fullUrl: `urn:uuid:${doc.id}`, // ✅ Valid fullUrl for documents
+           resource: doc,
+         })),
+       ],
+     };
+ 
+     // ✅ Return Valid FHIR Bundle
+     res.status(200).json(fhirBundle);
+     console.log("FHIR Validation Result:", validateFHIR(fhirBundle)); // Optional for validation
+   } catch (error) {
+     console.error("Error fetching hospital profile:", error);
+     res.status(500).json({
+       resourceType: "OperationOutcome",
+       issue: [{ severity: "error", code: "exception", details: { text: "Internal server error while fetching profile." } }],
+     });
+   }
+ },
+ 
   getLocationdata: async (req, res) => {
-    try {
-      const placeId = req.query.placeid;
-      const apiKey = GOOGLE_MAPS_API_KEY;
-      const url = `https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=${apiKey}`;
-
-      const response = await axios.get(url);
-      const extractAddressDetails = (geoLocationResp) => {
-        const addressResp = {
-          address: "",
-          street: "",
-          city: "",
-          state: "",
-          zipCode: "",
-          country: "",
-          lat: geoLocationResp.geometry.location.lat,
-          long: geoLocationResp.geometry.location.lng,
-        };
-
-        const address_components = geoLocationResp.address_components || [];
-
-        address_components.forEach((component) => {
-          const types = component.types;
-
-          if (types.includes("route")) {
-            addressResp.street = component.long_name;
-          }
-          if (types.includes("locality")) {
-            addressResp.city = component.long_name;
-          }
-          if (types.includes("administrative_area_level_1")) {
-            addressResp.state = component.short_name;
-          }
-          if (types.includes("postal_code")) {
-            addressResp.zipCode = component.long_name;
-          }
-          if (types.includes("country")) {
-            addressResp.country = component.long_name;
-          }
-        });
-
-        return addressResp;
-      };
-      const data = extractAddressDetails(response.data.result);
-      res.json(data);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
+   
+      try {
+          const placeId = req.query.placeid;
+          const apiKey = GOOGLE_MAPS_API_KEY
+          const url = `https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=${apiKey}`;
+  
+          const response = await axios
+          .get(url);
+          const extractAddressDetails = (geoLocationResp) => {
+            const addressResp = {
+              address: '',
+              street: '',
+              city: '',
+              state: '',
+              zipCode: '',
+              country: '',
+              lat: geoLocationResp.geometry.location.lat,
+              long: geoLocationResp.geometry.location.lng,
+            };
+        
+            const address_components = geoLocationResp.address_components || [];
+        
+            address_components.forEach((component) => {
+              const types = component.types;
+        
+              if (types.includes('route')) {
+                addressResp.street = component.long_name;
+              }
+              if (types.includes('locality')) {
+                addressResp.city = component.long_name;
+              }
+              if (types.includes('administrative_area_level_1')) {
+                addressResp.state = component.short_name;
+              }
+              if (types.includes('postal_code')) {
+                addressResp.zipCode = component.long_name;
+              }
+              if (types.includes('country')) {
+                addressResp.country = component.long_name;
+              }
+            });
+        
+            return addressResp;
+          };
+const data = extractAddressDetails(
+  response.data.result
+)
+          res.json(data) 
+      } catch (error) {
+          res.status(500).json({ error: error.message });
+      }
   },
+  
 };
 function getSecretHash(email) {
   const clientId = process.env.COGNITO_CLIENT_ID_WEB;
   const clientSecret = process.env.COGNITO_CLIENT_SECRET_WEB;
 
   return crypto
-    .createHmac("SHA256", clientSecret)
+    .createHmac('SHA256', clientSecret)
     .update(email + clientId)
-    .digest("base64");
+    .digest('base64');
 }
 
 module.exports = WebController;
+
