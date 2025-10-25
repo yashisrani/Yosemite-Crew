@@ -7,7 +7,7 @@ import Link from "next/link";
 import { isEmail } from "validator";
 
 import Footer from "@/app/components/Footer/Footer";
-import { FormInput } from "@/app/pages/Sign/SignUp";
+import { FormInput } from "@/app/pages/SignUp/SignUp";
 import DynamicSelect from "@/app/components/DynamicSelect/DynamicSelect";
 import { postData } from "@/app/services/axios";
 import { useOldAuthStore } from "@/app/stores/oldAuthStore";

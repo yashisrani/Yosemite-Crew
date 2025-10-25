@@ -9,9 +9,9 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 
 import { useErrorTost } from "@/app/components/Toast";
 import { useAuthStore } from "@/app/stores/authStore";
-import { FormInput, FormInputPass, MainBtn } from "@/app/pages/Sign/SignUp";
+import { FormInput, FormInputPass, MainBtn, BackBtn } from "@/app/pages/SignUp/SignUp";
 
-import "../Sign/Sign.css";
+import "../SignIn/SignIn.css"
 
 const ForgotPassword = () => {
   const router = useRouter();
@@ -26,6 +26,7 @@ const ForgotPassword = () => {
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
+  const goBackToSignIn = () => router.push("/signin");
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     index: number
@@ -287,6 +288,11 @@ const ForgotPassword = () => {
                 btnicon={<GoCheckCircleFill />}
                 btnname="Send Code"
                 onClick={handleOtp}
+              />
+              <BackBtn
+                btnicon={<GoCheckCircleFill />}
+                btnname="Back"
+                onClick={goBackToSignIn}
               />
             </Form>
           </div>

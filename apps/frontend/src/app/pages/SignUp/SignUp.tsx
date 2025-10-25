@@ -10,7 +10,7 @@ import { useErrorTost } from "@/app/components/Toast";
 import { useAuthStore } from "@/app/stores/authStore";
 import OtpModal from "@/app/components/OtpModal/OtpModal";
 
-import "./Sign.css";
+import "../SignIn/SignIn.css"
 
 const SignUp = () => {
   const { showErrorTost, ErrorTostPopup } = useErrorTost();
@@ -343,6 +343,21 @@ const MainBtn = ({
     </Button>
   );
 };
+
+const BackBtn = ({
+  btnname,
+  btnicon,
+  iconPosition,
+  onClick,
+}: Readonly<MainBtnProps>) => {
+  return (
+    <Button className="WhiteButton" type="submit" onClick={onClick}>
+      {iconPosition === "left" && btnicon && <span>{btnicon}</span>}
+      <span className="mx-1">{btnname}</span>
+      {iconPosition === "right" && btnicon && <span>{btnicon}</span>}
+    </Button>
+  );
+};
 // MainBtnProps Ended
 
 // FormInputProps started
@@ -468,4 +483,4 @@ const FormInputPass = ({
 };
 // FormInputPassProps Ended
 
-export { FormInput, FormInputPass, MainBtn };
+export { FormInput, FormInputPass, MainBtn, BackBtn };

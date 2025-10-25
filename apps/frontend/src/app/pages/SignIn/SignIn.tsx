@@ -5,7 +5,7 @@ import { Form } from "react-bootstrap";
 import { GoCheckCircleFill } from "react-icons/go";
 import { Icon } from "@iconify/react/dist/iconify.js";
 
-import { FormInput, FormInputPass, MainBtn } from "./SignUp";
+import { FormInput, FormInputPass, MainBtn } from "../SignUp/SignUp";
 import { useErrorTost } from "@/app/components/Toast";
 import { useAuthStore } from "@/app/stores/authStore";
 import OtpModal from "@/app/components/OtpModal/OtpModal";
