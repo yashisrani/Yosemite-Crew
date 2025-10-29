@@ -9,9 +9,9 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 
 import { useErrorTost } from "@/app/components/Toast";
 import { useAuthStore } from "@/app/stores/authStore";
-import { FormInput, FormInputPass, MainBtn } from "@/app/pages/Sign/SignUp";
+import { FormInput, FormInputPass, MainBtn, BackBtn } from "@/app/pages/Sign/SignUp";
 
-import "../Sign/Sign.css";
+import "../Sign/Sign.css"
 
 const ForgotPassword = () => {
   const router = useRouter();
@@ -26,6 +26,7 @@ const ForgotPassword = () => {
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
+  const goBackToSignIn = () => router.push("/signin");
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     index: number
@@ -57,7 +58,7 @@ const ForgotPassword = () => {
   const handleOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      if (globalThis.window) {
+      if (typeof globalThis.window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
       showErrorTost({
@@ -79,7 +80,7 @@ const ForgotPassword = () => {
     try {
       const data = await forgotPassword(email);
       if (data) {
-        if (globalThis.window) {
+        if (typeof globalThis.window !== "undefined") {
           window.scrollTo({ top: 0, behavior: "smooth" });
         }
         showErrorTost({
@@ -99,7 +100,7 @@ const ForgotPassword = () => {
         setShowVerifyCode(true);
       }
     } catch (error: unknown) {
-      if (globalThis.window) {
+      if (typeof globalThis.window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
       const axiosError = error as AxiosError<{ message: string }>;
@@ -123,7 +124,7 @@ const ForgotPassword = () => {
     e.preventDefault();
 
     if (otp.includes("")) {
-      if (globalThis.window) {
+      if (typeof globalThis.window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
       showErrorTost({
@@ -150,7 +151,7 @@ const ForgotPassword = () => {
     e.preventDefault();
 
     if (!password || !confirmPassword) {
-      if (globalThis.window) {
+      if (typeof globalThis.window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
       showErrorTost({
@@ -170,7 +171,7 @@ const ForgotPassword = () => {
     }
 
     if (password !== confirmPassword) {
-      if (globalThis.window) {
+      if (typeof globalThis.window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
       showErrorTost({
@@ -217,7 +218,7 @@ const ForgotPassword = () => {
         }, 5000);
       }
     } catch (error: any) {
-      if (globalThis.window) {
+      if (typeof globalThis.window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
       if (error?.code === "CodeMismatchException") {
@@ -287,6 +288,11 @@ const ForgotPassword = () => {
                 btnicon={<GoCheckCircleFill />}
                 btnname="Send Code"
                 onClick={handleOtp}
+              />
+              <BackBtn
+                btnicon={<GoCheckCircleFill />}
+                btnname="Back"
+                onClick={goBackToSignIn}
               />
             </Form>
           </div>

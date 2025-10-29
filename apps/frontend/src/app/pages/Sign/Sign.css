@@ -97,7 +97,6 @@
   width: 100%;
   height: 100%;
   padding: 10px 24px;
-  border-radius: 36px;
   min-height: 60px;
   border: 1px solid var(--greyborder) !important;
   color: var(--lightblack);
@@ -107,6 +106,7 @@
   font-family: var(--satoshi-font);
   background-color: transparent;
   outline: var(--black-text);
+  border-radius: 16px;
 }
 .SignInput input::placeholder,
 .SignPassInput input::placeholder {
@@ -321,37 +321,37 @@
 /* Sign In Started  */
 
 .SignInSec {
-  width: 100%;
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  position: relative;
-}
-.leftSignIn {
-  background: url("https://d2il6osz49gpup.cloudfront.net/Images/SignInBg.png")
+  background: url("https://d2il6osz49gpup.cloudfront.net/Images/SignUpBg.png")
     no-repeat;
   background-size: cover;
-  height: 100%;
+  background-position: center;
   width: 100%;
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .RightSignIn {
   height: 100%;
   display: flex;
   align-items: center;
+  border-radius: 30px;
   justify-content: center;
   flex-direction: column;
   background: var(--whitebg);
 }
 
 .SignIninner {
-  padding: 40px;
+  padding: 60px 32px;
   width: 100%;
   max-width: 630px;
+  border-radius: 32px;
 }
 .SignIninner form {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 16px;
 }
 .SignIninner .TopSignInner {
   display: flex;
@@ -371,7 +371,7 @@
 }
 .SignIninner .TopSignInner h2 span,
 .SignIninner .ForgetHead h2 span {
-  color: var(--black-grey);
+  /* color: var(--black-grey); */
 }
 .forgtbtn {
   text-align: end;
@@ -391,7 +391,7 @@
 .SignIninner .ForgetHead {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
   padding-bottom: 24px;
 }
 .SignIninner .ForgetHead p {
@@ -547,3 +547,22 @@
 }
 
 /* SignError Ended */
+
+@media (min-width: 390px) and (max-width: 479px) {
+  .SignInSec {
+    padding: 24px;
+  }
+  .RightSignIn {
+    border-radius: 30px;
+  }
+  .SignIninner {
+    max-width: 630px;
+    padding: 60px 32px;
+    border-radius: 50px;
+  }
+  .SignIninner .TopSignInner h2 {
+    font-size: 40px;
+    line-height: 120%;
+    margin: 0 0 40px;
+  }
+}

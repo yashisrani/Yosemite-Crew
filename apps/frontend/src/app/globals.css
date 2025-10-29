@@ -91,7 +91,7 @@
 :root {
   --black-text: #302f2e;
   --black-bg: #302f2e;
-  --black-hover: #1A1A19;
+  --black-hover: #1d1c1b;
   --darkblackbg: #141413;
   --blck: #333333;
   --lightblack: #312943;
@@ -160,7 +160,7 @@ body {
   background-color: var(--whitebg) !important;
 }
 .bodywrapper {
-  padding-top: 80px;
+  padding-top: 100px;
 }
 @media screen and (min-width: 1024px) {
   .bodywrapper {
@@ -188,7 +188,7 @@ p {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  border-radius: 28px !important;
+  border-radius: 16px !important;
   min-height: 60px;
   width: 100%;
   border: 1px solid var(--black-text) !important;
@@ -204,6 +204,27 @@ p {
   border: 1px solid var(--black-text) !important;
 }
 .BlackButton svg {
+  font-size: 24px;
+}
+.WhiteButton{
+  background: white !important;
+  padding: 16px 32px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 16px !important;
+  min-height: 60px;
+  width: 100%;
+  border: 1px solid var(--black-text) !important;
+  color: var(--white-text) !important;
+  font-weight: 500 !important;
+  font-size: 23px !important;
+  line-height: 120% !important;
+  font-family: var(--grotesk-font) !important;
+  color: var(--black-text) !important;
+}
+.WhiteButton svg {
   font-size: 24px;
 }
 
